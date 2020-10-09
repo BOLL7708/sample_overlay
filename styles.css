@@ -1,0 +1,21 @@
+body {
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
+}
+.bar {
+    width: 2em;
+    height: 5em;
+    background-image: linear-gradient(pink, purple);
+    transition: height 1s;
+}
+#bars {
+    display: inline-block;
+}
+.barcontainer {
+    transform: rotateX(180deg);
+    border: 1px solid #ff00ff80;
+    margin: .5em;
+    display: inline-block;
+    height: 5em;
+}
