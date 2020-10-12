@@ -1,6 +1,22 @@
-var maxFps = 90;
+var maxFps = 0;
 var prev = null;
 var overflow = { hmd: 0, game: 0 };
+
+var configSystem = [
+    { key: "cpuLoadAvg", label: "CPU Load Avg" },
+    { key: "cpuLoadMax", label: "CPU Max Core Load" },
+    { key: "cpuRam", label: "CPU Memory" },
+    { key: "cpuTemp", label: "CPU Temperature" },
+    { key: "gpuLoad", label: "GPU Load" },
+    { key: "gpuRam", label: "GPU Memory" },
+    { key: "gpuVideoLoad", label: "GPU Video Load" },
+    { key: "gpuTemp", label: "CPU Load Avg" }
+];
+var configFps = [
+    { key: "fpsHmd", label: "HMD Frame Rate" },
+    { key: "fpsGame", label: "Game Frame Rate" }
+];
+var config = configSystem.concat(configFps);
 
 function init() {
     var $info = $("#info");
@@ -9,9 +25,9 @@ function init() {
     var socket = null;
     var socketAlive = false;
 
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < config.length; i++) {
         $bars.append('<div class="barcontainer"><div id="bar' + i + '" class="bar"></div></div>');
-        bars[i] = $("#bar" + i);
+        bars[config[i].key] = $("#bar" + i);
     }
     console.log(bars);
 
@@ -24,20 +40,31 @@ function init() {
             .then(response => response.json())
             .then(json => {
                 var data = getData(json);
-                bars[0].css("height", data.cpuLoadAvg + "px");
-                bars[1].css("height", data.cpuLoadMax + "px");
-                bars[2].css("height", data.cpuRam + "px");
-                bars[3].css("height", data.cpuTemp + "px");
-                bars[4].css("height", data.gpuLoad + "px");
-                bars[5].css("height", data.gpuRam + "px");
-                bars[6].css("height", data.gpuTemp + "px");
-                bars[7].css("height", data.gpuVideoLoad + "px");
+                for (i = 0; i < configSystem.length; i++) {
+                    updateBar(configSystem[i], data);
+                }
             })
         if (socketAlive) {
             var payload = {
                 "key": "CumulativeStats"
             };
             socket.send(JSON.stringify(payload));
+        }
+    }
+
+    function updateBar(conf, data) {
+        var key = conf.key;
+        bars[key].css("height", data[key] + "%");
+    }
+
+    function updateFpsBars(data) {
+        var max = data.fpsMax;
+        data.fpsHmd = data.fpsHmd / max * 100;
+        data.fpsGame = data.fpsGame / max * 100;
+
+        for (i = 0; i < this.configFps.length; i++) {
+            var conf = this.configFps[i];
+            updateBar(conf, data);
         }
     }
 
@@ -64,6 +91,7 @@ function init() {
                 switch (data.key) {
                     case "CumulativeStats":
                         var result = getFrames(data.data);
+                        updateFpsBars(result);
                         break;
                     case "DeviceProperty":
                         getDeviceProperties(data.data);
