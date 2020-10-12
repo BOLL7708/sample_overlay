@@ -1,7 +1,13 @@
+var maxFps = 90;
+var prev = null;
+var overflow = { hmd: 0, game: 0 };
+
 function init() {
     var $info = $("#info");
     var $bars = $("#bars");
     var bars = [];
+    var socket = null;
+    var socketAlive = false;
 
     for (i = 0; i < 8; i++) {
         $bars.append('<div class="barcontainer"><div id="bar' + i + '" class="bar"></div></div>');
@@ -9,8 +15,8 @@ function init() {
     }
     console.log(bars);
 
-
     loop();
+    connect();
 
     function loop() {
         setTimeout(loop, 1000);
@@ -27,6 +33,47 @@ function init() {
                 bars[6].css("height", data.gpuTemp + "px");
                 bars[7].css("height", data.gpuVideoLoad + "px");
             })
+        if (socketAlive) {
+            var payload = {
+                "key": "CumulativeStats"
+            };
+            socket.send(JSON.stringify(payload));
+        }
+    }
+
+    function connect() {
+        if (!socketAlive) {
+            socketAlive = true;
+            socket = new WebSocket("ws://localhost:7708");
+            socket.onopen = function (evt) {
+                console.log("WebSocket opened.");
+                var payload = {
+                    key: "DeviceProperty",
+                    device: 0,
+                    value: "Prop_DisplayFrequency_Float"
+                }
+                socket.send(JSON.stringify(payload));
+            }
+            socket.onclose = function (evt) {
+                socketAlive = false;
+                console.log("WebSocket closed.");
+                setTimeout(connect, 2000);
+            }
+            socket.onmessage = function (evt) {
+                var data = JSON.parse(evt.data);
+                switch (data.key) {
+                    case "CumulativeStats":
+                        var result = getFrames(data.data);
+                        break;
+                    case "DeviceProperty":
+                        getDeviceProperties(data.data);
+                        break;
+                }
+            }
+            socket.onerror = function (evt) {
+                console.error(evt);
+            }
+        }
     }
 }
 
@@ -106,3 +153,59 @@ function getData(data) {
     return result;
 }
 
+function getDeviceProperties(data) {
+    switch (data.name) {
+        case "Prop_DisplayFrequency_Float":
+            this.maxFps = Math.round(data.value);
+            break;
+    }
+}
+
+function getFrames(data) {
+    var result = {
+        framesPresented: data.framesPresented,
+        framesReprojected: data.framesReprojected,
+        framesDropped: data.framesDropped,
+        framesTime: data.systemTimeMs,
+        fpsMax: 0,
+        fpsHmd: 0,
+        fpsGame: 0,
+    }
+    if (result.framesPresented == 0)
+        return result;
+    if (this.prev == null) this.prev = result;
+
+    let delta = result.framesTime - this.prev.framesTime;
+    let presented = result.framesPresented - this.prev.framesPresented;
+    let reprojected = result.framesReprojected - this.prev.framesReprojected;
+    let dropped = result.framesDropped - this.prev.framesDropped;
+    let secs = 1000 / delta;
+    let fpsHmd = Math.ceil(presented * secs);
+    let fpsGame = Math.ceil((presented - reprojected - dropped) * secs);
+    // Due to unstable frame rate reporting this smooths the value out.
+    if (fpsHmd < this.maxFps)
+        fpsHmd += this.overflow.hmd;
+    this.overflow.hmd = 0;
+    if (fpsHmd > this.maxFps)
+        this.overflow.hmd = fpsHmd - this.maxFps;
+    if (fpsGame < this.maxFps)
+        fpsGame += this.overflow.game;
+    this.overflow.game = 0;
+    if (fpsGame > this.maxFps)
+        this.overflow.game = fpsGame - this.maxFps;
+    result.fpsMax = this.maxFps;
+    result.fpsHmd = this.zorm(fpsHmd, this.maxFps);
+    result.fpsGame = this.zorm(fpsGame, this.maxFps);
+    this.prev = result;
+    return result;
+}
+
+function zorm(val, max) {
+    if (val > max)
+        return max;
+    if (val < 0)
+        return 0;
+    if (isNaN(val))
+        return 0;
+    return val;
+}
