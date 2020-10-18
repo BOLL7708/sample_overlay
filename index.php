@@ -5,7 +5,6 @@
         <link href="styles.css" rel="stylesheet">
     </head>
     <body onload="init();">
-        <div id="info"></div>
         <div id="bars"></div>
     </body>
 </html>

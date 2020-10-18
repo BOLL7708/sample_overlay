@@ -2,34 +2,41 @@ var maxFps = 0;
 var prev = null;
 var overflow = { hmd: 0, game: 0 };
 
+// Config, edit label and unit as you please.
 var configSystem = [
-    { key: "cpuLoadAvg", label: "CPU Load Avg" },
-    { key: "cpuLoadMax", label: "CPU Max Core Load" },
-    { key: "cpuRam", label: "CPU Memory" },
-    { key: "cpuTemp", label: "CPU Temperature" },
-    { key: "gpuLoad", label: "GPU Load" },
-    { key: "gpuRam", label: "GPU Memory" },
-    { key: "gpuVideoLoad", label: "GPU Video Load" },
-    { key: "gpuTemp", label: "CPU Load Avg" }
+    { key: "cpuLoadAvg", label: "CPU Load Avg", unit: "%" },
+    { key: "cpuLoadMax", label: "CPU Max Core Load", unit: "%" },
+    { key: "cpuRam", label: "CPU Memory", unit: "%" },
+    { key: "cpuTemp", label: "CPU Temperature", unit: "°C" },
+    { key: "gpuLoad", label: "GPU Load", unit: "%" },
+    { key: "gpuRam", label: "GPU Memory", unit: "%" },
+    { key: "gpuVideoLoad", label: "GPU Video Load", unit: "%" },
+    { key: "gpuTemp", label: "CPU Load Avg", unit: "°C" }
 ];
 var configFps = [
-    { key: "fpsHmd", label: "HMD Frame Rate" },
-    { key: "fpsGame", label: "Game Frame Rate" }
+    { key: "fpsHmd", label: "HMD Frame Rate", unit: "" },
+    { key: "fpsGame", label: "Game Frame Rate", unit: "" }
 ];
 var config = configSystem.concat(configFps);
+// End config
 
 function init() {
-    var $info = $("#info");
     var $bars = $("#bars");
     var bars = [];
+    var values = [];
     var socket = null;
     var socketAlive = false;
 
     for (i = 0; i < config.length; i++) {
-        $bars.append('<div class="barcontainer"><div id="bar' + i + '" class="bar"></div></div>');
+        $bars.append(
+            '<div class="container">' +
+            '<div class="barcontainer"><div id="bar' + i + '" class="bar"></div></div>' +
+            '<div id="value' + i + '" class="value"></div>' +
+            '<div class="label">' + config[i].label + '</div>') +
+            '</div>';
         bars[config[i].key] = $("#bar" + i);
+        values[config[i].key] = $("#value" + i);
     }
-    console.log(bars);
 
     loop();
     connect();
@@ -40,8 +47,10 @@ function init() {
             .then(response => response.json())
             .then(json => {
                 var data = getData(json);
-                for (i = 0; i < configSystem.length; i++) {
-                    updateBar(configSystem[i], data);
+                for (i = 0; i < this.configSystem.length; i++) {
+                    var conf = this.configSystem[i];
+                    var value = data[conf.key];
+                    updateBar(conf, value, value);
                 }
             })
         if (socketAlive) {
@@ -52,19 +61,20 @@ function init() {
         }
     }
 
-    function updateBar(conf, data) {
+    function updateBar(conf, height, value) {
         var key = conf.key;
-        bars[key].css("height", data[key] + "%");
+        if (isNaN(value)) value = 0;
+        bars[key].css("height", height + "%");
+        values[key].html(Math.round(value) + conf.unit);
     }
 
     function updateFpsBars(data) {
         var max = data.fpsMax;
-        data.fpsHmd = data.fpsHmd / max * 100;
-        data.fpsGame = data.fpsGame / max * 100;
-
         for (i = 0; i < this.configFps.length; i++) {
             var conf = this.configFps[i];
-            updateBar(conf, data);
+            var value = data[conf.key];
+            var height = value / max * 100;
+            updateBar(conf, height, value);
         }
     }
 
@@ -210,6 +220,7 @@ function getFrames(data) {
     let secs = 1000 / delta;
     let fpsHmd = Math.ceil(presented * secs);
     let fpsGame = Math.ceil((presented - reprojected - dropped) * secs);
+
     // Due to unstable frame rate reporting this smooths the value out.
     if (fpsHmd < this.maxFps)
         fpsHmd += this.overflow.hmd;
@@ -221,6 +232,7 @@ function getFrames(data) {
     this.overflow.game = 0;
     if (fpsGame > this.maxFps)
         this.overflow.game = fpsGame - this.maxFps;
+
     result.fpsMax = this.maxFps;
     result.fpsHmd = this.zorm(fpsHmd, this.maxFps);
     result.fpsGame = this.zorm(fpsGame, this.maxFps);

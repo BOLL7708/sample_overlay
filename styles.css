@@ -2,20 +2,50 @@ body {
     background-color: transparent;
     margin: 0;
     padding: 0;
+    font-size: smaller;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-.bar {
-    width: 2em;
-    height: 5em;
-    background-image: linear-gradient(pink, purple);
-    transition: height 1s;
-}
-#bars {
+
+/*
+    Indentation based on the structure they have on the page.
+*/
+
+.container {
+    vertical-align: top;
     display: inline-block;
 }
-.barcontainer {
-    transform: rotateX(180deg);
-    border: 1px solid #ff00ff80;
-    margin: .5em;
-    display: inline-block;
-    height: 5em;
-}
+    .barcontainer, .value, .label {
+        width: 32px;
+        box-sizing: border-box;
+        overflow: hidden;
+        margin-left: 16px;
+        text-align: center;
+    }
+
+    .barcontainer {
+        height: 72px;
+        transform: rotateX(180deg);
+        border: 2px solid #ff00ff80;
+    }
+        .bar {
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(pink, purple);
+            transition: height 1s;
+        }
+
+    .value {
+        font-weight: bold;
+        padding: 2px;
+        background-color: white;
+        color: black;
+        margin-top: 8px;
+        background-image: linear-gradient(white, lightgray);
+    }
+    .label {
+        padding: 2px;
+        color: white;
+        background-image: linear-gradient(black, gray);
+        background-color: black;
+        margin-top: 4px;
+    }
