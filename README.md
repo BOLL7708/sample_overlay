@@ -1,6 +1,8 @@
 # Sample Overlay
 This is a small sample overlay using OpenHardwareMonitor and OpenVR2WS to visualize system performance.
 
+![Screenshot](https://i.imgur.com/E8CRulv.png)
+
 ## Prerequisites
 ### OpenHardwareMonitor
 * Download and run OpenHardwareMonitor: https://openhardwaremonitor.org/
