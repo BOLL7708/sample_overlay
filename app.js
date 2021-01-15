@@ -2,7 +2,21 @@ var maxFps = 0;
 var prev = null;
 var overflow = { hmd: 0, game: 0 };
 
-// Config, edit label and unit as you please.
+/* 
+    Settings
+
+    vrPort: The port used for OpenVR2WS.
+    configDevices: Change these to match what the devices have as titles in OpenHardwareMonitor.
+    configSystem: The keys should be correct, edit the labels to your liking.
+    configFps: The keys should not be changed, edit the labels to your liking.
+    configFrames: The keys should not be changed, edit the labels to your liking.
+*/
+var vrPort = 7708;
+var configDevices = {
+    cpu: "Intel Core i9-9900K",
+    ram: "Generic Memory",
+    gpu: "NVIDIA GeForce RTX 3080"
+};
 var configSystem = [
     { key: "cpuLoadAvg", label: "CPU Load Avg", unit: "%" },
     { key: "cpuLoadMax", label: "CPU Max Core Load", unit: "%" },
@@ -17,7 +31,11 @@ var configFps = [
     { key: "fpsHmd", label: "HMD Frame Rate", unit: "" },
     { key: "fpsGame", label: "Game Frame Rate", unit: "" }
 ];
-var config = configSystem.concat(configFps);
+var configFrames = [
+    { key: "framesReprojected", label: "Reprojected frames", unit: "%" },
+    { key: "framesDropped", label: "Dropped frames", unit: "%" }
+];
+var config = configSystem.concat(configFps).concat(configFrames);
 // End config
 
 function init() {
@@ -78,10 +96,19 @@ function init() {
         }
     }
 
+    function updateFramesBars(data) {
+        var max = data.framesPresented;
+        for (i = 0; i < this.configFrames.length; i++) {
+            var conf = this.configFrames[i];
+            var height = data[conf.key] / max * 100;
+            updateBar(conf, height, height);
+        }
+    }
+
     function connect() {
         if (!socketAlive) {
             socketAlive = true;
-            socket = new WebSocket("ws://localhost:7708");
+            socket = new WebSocket("ws://localhost:" + vrPort);
             socket.onopen = function (evt) {
                 console.log("WebSocket opened.");
                 var payload = {
@@ -102,6 +129,7 @@ function init() {
                     case "CumulativeStats":
                         var result = getFrames(data.data);
                         updateFpsBars(result);
+                        updateFramesBars(result);
                         break;
                     case "DeviceProperty":
                         getDeviceProperties(data.data);
@@ -116,10 +144,6 @@ function init() {
 }
 
 function getData(data) {
-    var cpu = "Intel Core i9-9900K";
-    var ram = "Generic Memory";
-    var gpu = "NVIDIA GeForce RTX 2080";
-
     var pc = data.Children[0];
     var result = {
         cpuLoadMax: 0,
@@ -133,7 +157,7 @@ function getData(data) {
     };
     pc.Children.forEach(component => {
         switch (component.Text) {
-            case cpu:
+            case configDevices.cpu:
                 component.Children.forEach(property => {
                     switch (property.Text) {
                         case "Temperatures":
@@ -156,13 +180,13 @@ function getData(data) {
                     }
                 });
                 break;
-            case ram:
+            case configDevices.ram:
                 component.Children.forEach(item => {
                     if (item.Text == "Load")
                         result['cpuRam'] = parseFloat(item.Children[0].Value);
                 });
                 break;
-            case gpu:
+            case configDevices.gpu:
                 component.Children.forEach(property => {
                     switch (property.Text) {
                         case "Temperatures":
@@ -207,7 +231,7 @@ function getFrames(data) {
         framesTime: data.systemTimeMs,
         fpsMax: 0,
         fpsHmd: 0,
-        fpsGame: 0,
+        fpsGame: 0
     }
     if (result.framesPresented == 0)
         return result;

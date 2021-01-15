@@ -7,7 +7,14 @@ body {
 }
 
 /*
-    Indentation based on the structure they have on the page.
+    This should be pretty self-explanatory, but just in case.
+
+    .barcontainer = the frame/box containing a bar.
+    .bar = the actual bar visible in the container.
+    .value = the box that contains the numerical value.
+    .label = the descriptive label below the value.
+
+    The bars go from bottom top top due to the transform on the .barcontainer.
 */
 
 .container {
@@ -25,12 +32,12 @@ body {
     .barcontainer {
         height: 72px;
         transform: rotateX(180deg);
-        border: 2px solid #ff00ff80;
+        border: 2px solid darkgray;
     }
         .bar {
             width: 100%;
             height: 100%;
-            background-image: linear-gradient(pink, purple);
+            background-image: linear-gradient(lightgray, gray);
             transition: height 1s;
         }
 
