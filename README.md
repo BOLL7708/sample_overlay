@@ -1,7 +1,7 @@
 # Sample Overlay
 This is a small sample overlay using OpenHardwareMonitor and OpenVR2WS to visualize system performance.
 
-## Prerequisits
+## Prerequisites
 ### OpenHardwareMonitor
 * Download and run OpenHardwareMonitor: https://openhardwaremonitor.org/
 * Open the window, check `Menu > Options > Remove Web Server > Run`
@@ -16,10 +16,10 @@ This is a small sample overlay using OpenHardwareMonitor and OpenVR2WS to visual
 * Start Apache with the `Start` button
 
 ## Usage
-Put the files in your webserver so PHP can run.
+Put the files in your webserver root so PHP can run, in XAMPP it's the `htdocs` folder.
 
 See `app.js` for settings regarding your hardware and update accordingly.
 
-Modify the CSS (or anything else) to make it look like you want it to. 
+Modify the `styles.css` (or anything else) to make it look like you want it to. 
 
 To show it off in your stream, add it as a browser source in whichever capture suite you prefer.
