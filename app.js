@@ -25,7 +25,7 @@ var configSystem = [
     { key: "gpuLoad", label: "GPU Load", unit: "%" },
     { key: "gpuRam", label: "GPU Memory", unit: "%" },
     { key: "gpuVideoLoad", label: "GPU Video Load", unit: "%" },
-    { key: "gpuTemp", label: "CPU Load Avg", unit: "°C" }
+    { key: "gpuTemp", label: "GPU Temperature", unit: "°C" }
 ];
 var configFps = [
     { key: "fpsHmd", label: "HMD Frame Rate", unit: "" },
