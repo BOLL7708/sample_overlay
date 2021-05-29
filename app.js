@@ -70,7 +70,7 @@ function init() {
                     var value = data[conf.key];
                     updateBar(conf, value, value);
                 }
-            })
+            }).catch(err => {console.error(err)})
         if (socketAlive) {
             var payload = {
                 "key": "CumulativeStats"
