@@ -1,7 +1,7 @@
 # Sample Overlay
 This is a small sample overlay using OpenHardwareMonitor and OpenVR2WS to visualize system performance.
 
-![Screenshot](https://i.imgur.com/E8CRulv.png)
+![Screenshot](https://i.imgur.com/KSYKvbg.png)
 
 ## Prerequisites
 ### OpenHardwareMonitor
@@ -22,6 +22,6 @@ Put the files in your webserver root so PHP can run, in XAMPP it's the `htdocs` 
 
 See `app.js` for settings regarding your hardware and update accordingly.
 
-Modify the `styles.css` (or anything else) to make it look like you want it to. 
+Modify the `styles.css` (or anything else) to make it look like you want it to.
 
 To show it off in your stream, add it as a browser source in whichever capture suite you prefer.
